@@ -185,7 +185,10 @@ void inserirTrie(const char s[TAMANHO_STRING], int id){
             arvore.close();
             return;
         }
-        if(node.offsets[(s[i] |' ') - 'a'] == -1){
+
+        int idx = (s[i] |' ') - 'a';
+        if(node.offsets[idx] == -1){
+
             nodeTrie novonode;
             int novooffset;
             novonode.ehfolha = false;
@@ -193,8 +196,10 @@ void inserirTrie(const char s[TAMANHO_STRING], int id){
             for(int j = 0; j < 26;++j){
                 novonode.offsets[j] = -1;
             }
-            tam = tamanhoTrie();
-            node.offsets[(s[i] |' ') - 'a'] = novooffset = sizeof(int)+ (tam*sizeof(novonode));
+            arvore.seekg(0);
+            arvore.read(reinterpret_cast<char*>(&tam), sizeof(int));
+            novooffset = sizeof(int) + (tam*sizeof(novonode));
+            node.offsets[idx] = novooffset;
             arvore.seekp(novooffset);
             arvore.write(reinterpret_cast<char*>(&novonode), sizeof(novonode));
             arvore.seekp(offset);
@@ -205,12 +210,14 @@ void inserirTrie(const char s[TAMANHO_STRING], int id){
             node = novonode;
             offset = novooffset;
         }else{
-            offset = node.offsets[(s[i] |' ') - 'a'];
+            offset = node.offsets[idx];
             arvore.seekg(offset);
             arvore.read(reinterpret_cast<char*>(&node),sizeof(node));
         }
         i++;
     }
+
+    return;
 }
 
 unordered_set<int> buscarTrieR(int offset, fstream &arvore){
@@ -410,7 +417,7 @@ vector<int> lerLista(int offset){
     return result;
 }
 
-void adicionar(registro r){
+void adicionar(registro &r){
     int x = escreverRegistro(r), ok = buscaTrieExata(r.nome);
     if(ok == -1){
         int offset = inserirLista(x);
@@ -495,6 +502,7 @@ int main(){
     }
     registro reg;
     unordered_set<int> resultados = buscarTrie(convert);
+    // ch devolve champanhe e agua benta duas vezes, uma por CHarlieBrownjr e outra por CHampanhe e agua benta (implementar depois não pesquisar o mesmo ip duas vezes)
     for( int resultado : resultados){
         cout <<"Resultado: " << resultado << endl;
         vector<int> tmp = lerLista(resultado);
