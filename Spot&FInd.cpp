@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unordered_set>
 #include <vector>
 #include <fstream>
 
@@ -19,6 +20,11 @@ struct nodeTrie{
     bool ehfolha;
     int valor;
     int offsets[26];
+};
+
+struct nodeLista{
+    int valor;
+    int nxt;
 };
 
 int ultimo_id(){
@@ -207,31 +213,64 @@ void inserirTrie(const char s[TAMANHO_STRING], int id){
     }
 }
 
-vector<int> buscarTrieR(int offset, fstream &arvore){
-    vector<int> result;
+unordered_set<int> buscarTrieR(int offset, fstream &arvore){
+    unordered_set<int> result;
     nodeTrie node;
     arvore.seekg(offset);
     arvore.read(reinterpret_cast<char*>(&node),sizeof(node));
 
     if(node.ehfolha){
-        result.push_back(node.valor);   
+        result.insert(node.valor);   
     }
 
     for(int i = 0; i < 26; ++i){
-        vector<int> tmp;
+        unordered_set<int> tmp;
         if(node.offsets[i] != -1){
             tmp = buscarTrieR(node.offsets[i], arvore);
         }
 
-        result.insert(result.end(),tmp.begin(),tmp.end());
+        result.insert(tmp.begin(),tmp.end());
     }
 
     return result;
 }
 
-vector<int> buscarTrie(const char s[TAMANHO_STRING]){
+int buscaTrieExata(const char s[TAMANHO_STRING]){
     int i = 0, offset = sizeof(int);
-    vector<int> result;
+    fstream arvore("trie.bin", ios::in | ios::out | ios::binary);
+    nodeTrie node;
+    arvore.seekg(offset);
+    arvore.read(reinterpret_cast<char*>(&node),sizeof(node));
+    while(s[i] != '\0'){
+        if(s[i] == ' '){
+            i++;
+            continue;
+        }
+
+        if(node.offsets[(s[i] |' ') - 'a'] == -1){
+            return -1;
+        }
+
+        offset = node.offsets[(s[i] |' ') - 'a'];
+        arvore.seekg(offset);
+        arvore.read(reinterpret_cast<char*>(&node),sizeof(node));
+
+        i++;
+    }
+
+    arvore.close();
+    
+    if(node.ehfolha){
+        return node.valor;
+    }else{
+        return -1;
+    }
+    
+}
+
+unordered_set<int> buscarTrie(const char s[TAMANHO_STRING]){
+    int i = 0, offset = sizeof(int);
+    unordered_set<int> result;
     fstream arvore("trie.bin", ios::in | ios::out | ios::binary);
     nodeTrie node;
     arvore.seekg(offset);
@@ -282,7 +321,117 @@ nodeTrie lerNode(int i){
     fstream arquivo("trie.bin", ios::in|ios::out|ios::binary);
     arquivo.seekg(sizeof(int)+ i*sizeof(nodeTrie));
     arquivo.read(reinterpret_cast<char*>(&result),sizeof(result));
+    arquivo.close();
     return result;
+}
+
+int tamanhoLista(){
+    int tam;
+    fstream arquivo("listas.bin", ios::in|ios::out|ios::binary);
+    arquivo.seekg(0);
+    arquivo.read(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.close();
+    return tam;
+}
+
+int inserirLista(int id){
+    int tam = tamanhoLista();
+    nodeLista node;
+    node.nxt = -1;
+    node.valor = id;
+    int offset = sizeof(int)+tam*sizeof(node);
+    fstream arquivo("listas.bin", ios::in|ios::out|ios::binary);
+    tam++;
+    if(!arquivo){
+        cerr << "Erro ao abrir listas.bin\n";
+        return -1;
+    }
+    arquivo.seekp(offset);
+    arquivo.write(reinterpret_cast<char*>(&node),sizeof(node));
+    arquivo.seekp(0);
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+
+    arquivo.close();
+
+    return offset;
+}
+
+void inserirElementoLista(int id, int offset){
+    int ptr = offset;
+    fstream arquivo("listas.bin", ios::in|ios::out|ios::binary);
+    if(!arquivo){
+        cerr << "Erro ao abrir listas.bin\n";
+        return;
+    }
+    nodeLista node;
+    while(true){
+        arquivo.seekg(ptr);
+        arquivo.read(reinterpret_cast<char*>(&node),sizeof(node));
+        if(node.nxt != -1){
+            ptr = node.nxt;
+        }else{
+            break;
+        }
+    }
+    nodeLista novo;
+    int tam = tamanhoLista(), novooffset = sizeof(int) + tam*sizeof(novo);
+    novo.valor = id;
+    novo.nxt = -1;
+    arquivo.seekp(novooffset);
+    arquivo.write(reinterpret_cast<char*>(&novo),sizeof(novo));
+    node.nxt = novooffset;
+    arquivo.seekp(ptr);
+    arquivo.write(reinterpret_cast<char*>(&node),sizeof(node));
+    tam++;
+    arquivo.seekp(0);
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+
+    arquivo.close();
+    return;
+}
+
+vector<int> lerLista(int offset){
+    vector<int> result;
+    fstream arquivo("listas.bin", ios::in|ios::out|ios::binary);
+    if(!arquivo){
+        cerr << "Erro ao abrir listas.bin\n";
+        return result;
+    }
+    int ptr = offset;
+    nodeLista node;
+    while(ptr != -1){
+        arquivo.seekg(ptr);
+        arquivo.read(reinterpret_cast<char*>(&node),sizeof(node));
+        ptr = node.nxt;
+        result.push_back(node.valor);
+    }
+
+    arquivo.close();
+    return result;
+}
+
+void adicionar(registro r){
+    int x = escreverRegistro(r), ok = buscaTrieExata(r.nome);
+    if(ok == -1){
+        int offset = inserirLista(x);
+        inserirTrie(r.nome,offset);
+    }else{
+        inserirElementoLista(x,ok);
+    }
+    ok = buscaTrieExata(r.artista);
+    if(ok == -1){
+        int offset = inserirLista(x);
+        inserirTrie(r.artista,offset);
+    }else{
+        inserirElementoLista(x,ok);
+    }
+    ok = buscaTrieExata(r.album);
+    if(ok == -1){
+        int offset = inserirLista(x);
+        inserirTrie(r.album,offset);
+    }else{
+        inserirElementoLista(x,ok);
+    }
 }
 
 int main(){
@@ -312,12 +461,7 @@ int main(){
         for(int j = albuns[i].size(); j < TAMANHO_STRING; ++j){
             r.album[j] = '\0';
         }
-        int x = escreverRegistro(r);
-        if(x != -1){
-            inserirTrie(r.artista,x);
-            inserirTrie(r.nome,x);
-            inserirTrie(r.album,x);
-        }
+        adicionar(r);
         cout << "\nEscrito com sucesso\n";
     }
     */
@@ -338,6 +482,7 @@ int main(){
     */
     // /*
     // Busca na Trie
+    cout << tamanhoLista() << endl;
     string s;
     cout << "O que voce procura? : ";
     getline(cin, s);
@@ -349,13 +494,44 @@ int main(){
         convert[i] = '\0';
     }
     registro reg;
-    vector<int> resultados = buscarTrie(convert);
-    for(int i = 0; i < resultados.size(); ++i){
-        reg = lerRegistro(resultados[i]);
-        cout <<"\nMusica: "<<reg.nome<<"\nArtista: "<<reg.artista<<"\nAlbum: "<<reg.album;
+    unordered_set<int> resultados = buscarTrie(convert);
+    for( int resultado : resultados){
+        cout <<"Resultado: " << resultado << endl;
+        vector<int> tmp = lerLista(resultado);
+        for(int i = 0; i < tmp.size(); ++i){
+            reg = lerRegistro(tmp[i]);
+            cout <<"\nMusica: "<<reg.nome<<"\nArtista: "<<reg.artista<<"\nAlbum: "<<reg.album;
+        }
+        cout << endl;
     }
-    cout << endl;
     // */
+    /*
+    // navegar trie
+    nodeTrie node;
+    int tmp;
+    fstream arquivo("trie.bin", ios::in|ios::out|ios::binary);
+    arquivo.seekg(sizeof(int));
+    arquivo.read(reinterpret_cast<char*>(&node),sizeof(node));
+    char resp = 'a';
+    while(resp != ' '){
+        cout << "qual caracter: ";
+        cin >> resp;
+        tmp = node.offsets[resp-'a'];
+        arquivo.seekg(tmp);
+        arquivo.read(reinterpret_cast<char*>(&node),sizeof(node));
+        cout << node.ehfolha << endl;
+        cout << node.valor << endl;
+        for(int i = 0; i < 26; ++i){
+            cout << char(i + 'a') << ": ";
+            if(node.offsets[i] == -1){
+                cout << "vazio\n";
+            }else{
+                cout << (node.offsets[i] - sizeof(int))/sizeof(nodeTrie) << endl;
+            }
+        }
+    }
+    */
+
     /*
     cout << tamanhoTrie() << endl;
     nodeTrie node = lerNode(0);

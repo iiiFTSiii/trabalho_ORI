@@ -20,9 +20,16 @@ int main(){
     fstream arquivo("trie.bin",  ios::in | ios::out | ios::binary);
     arquivo.seekp(0);
     arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
-    arquivo.seekp(0);
-    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
     arquivo.seekp(sizeof(tam));
     arquivo.write(reinterpret_cast<char*>(&raiz),sizeof(raiz));
     arquivo.close();
+    fstream lista("listas.bin", ios::in | ios::out | ios::binary);
+    int x = 0;
+    lista.write(reinterpret_cast<char*>(&x), sizeof(x));
+    lista.close();
+    fstream info("info.bin", ios::in | ios::out | ios::binary);
+    tam = 0;
+    info.write(reinterpret_cast<char*>(&x), sizeof(x));
+    info.write(reinterpret_cast<char*>(&tam), sizeof(tam));
+    info.close();
 }
