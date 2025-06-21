@@ -56,32 +56,37 @@ class bancoRegistro{
 
 class trie{
     public:
-        trie(std::string s);
+        trie(listaRegistroExcluido& lista, std::string s);
         int get_tamanho();
         void set_tamanho(int tam);
         nodeTrie get_node(int offset);
         void set_node(nodeTrie node,int offset);
+        void set_valor(const char s[TAMANHO_STRING], int valor);
         int busca_trie_exata(const char s[TAMANHO_STRING]);
         std::vector<int> buscar_trie(const char s[TAMANHO_STRING]);
         void inserir_trie(const char s[TAMANHO_STRING], int id);
+        bool excluir_ramo(const char s[TAMANHO_STRING], int offset, int i );
         ~trie();
         std::fstream arquivo;
         std::vector<int> buscar_trieR(int offset);
+        listaRegistroExcluido &ls;
 };
 
 // substituir parametro de string por outro
 class listas{
     public:
-        listas(std::string s);
+        listas( listaRegistroExcluido& lista, std::string s);
         int get_tamanho_lista();
         void set_tamanho_lista(int tam);
         nodeLista get_node_lista(int offset);
         void set_node_lista(nodeLista node, int offset);
+        int excluir_node_lista(int offset, int id);
         std::vector<int> get_lista(int offset);
         int inserir_lista(int id);
         void inserir_elemento_lista(int id, int offset);
         ~listas();
-        std::fstream arquivo;        
+        std::fstream arquivo;  
+        listaRegistroExcluido &ls;      
 };
 
 class indices{
@@ -95,9 +100,10 @@ class indices{
 
 class admin{
     public:
-        admin(listaRegistroExcluido &q,std::string r,std::string s,std::string t,std::string u,std::string v);
+        admin(listaRegistroExcluido &l,std::string r,listaRegistroExcluido &m,std::string s,listaRegistroExcluido &n,std::string t,listaRegistroExcluido &o,std::string u,std::string v);
         std::vector<int> busca(const registro &r);
         void adicionar(registro &r);
+        void excluir(int id);
         bancoRegistro bd;
         trie tr;
         listas lt;

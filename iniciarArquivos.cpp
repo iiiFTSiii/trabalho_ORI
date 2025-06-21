@@ -11,50 +11,57 @@ struct nodeTrie{
 };
 
 int main(){
-    //info
-    fstream info("info.bin", ios::in | ios::out | ios::binary);
-    int tam = 0, x= 0;
-    info.write(reinterpret_cast<char*>(&x), sizeof(x));
-    info.write(reinterpret_cast<char*>(&tam), sizeof(tam));
-    info.close();
-    // /*
-    //trie
-    tam = 1;
-    nodeTrie raiz;
-    raiz.ehfolha = false;
-    raiz.valor = -1;
-    for(int i = 0; i < QTD_CARACTER; ++i){
-        raiz.offsets[i] = -1;
-    }
-    fstream arquivo("trie.bin",  ios::in | ios::out | ios::binary);
+    int tam = 0;
+    // excreg.bin
+    fstream arquivo("excreg.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir excreg.bin\n";
     arquivo.seekp(0);
     arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
-    arquivo.seekp(sizeof(tam));
-    arquivo.write(reinterpret_cast<char*>(&raiz),sizeof(raiz));
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
     arquivo.close();
-    // */
-    // /*
-    //listas
-    fstream lista("listas.bin", ios::in | ios::out | ios::binary);
-    x = 0;
-    lista.write(reinterpret_cast<char*>(&x), sizeof(x));
-    lista.close();
-    // */
-    // /*
-    //idxtags
-    fstream idxs("idxtags.bin", ios::in|ios::out|ios::binary);
-    x = -1;
-    idxs.seekp(0);
-    for(int i = 0; i < 192; ++i){
-        idxs.write(reinterpret_cast<char*>(&x),sizeof(x));
+    // excinter.bin
+    arquivo.open("excinter.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir excinter.bin\n";
+    arquivo.seekp(0);
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.close();
+    //  exctr.bin
+    tam = 1;
+    arquivo.open("exctr.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir exctr.bin\n";
+    arquivo.seekp(0);
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    tam = 0;
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.close();
+    // trie.bin
+    nodeTrie node;
+    node.ehfolha = false;
+    node.valor = -1;
+    for(int i = 0; i < QTD_CARACTER; ++i){
+        node.offsets[i] = -1;
     }
-    idxs.close();
-    // */
-    // /*
-    //tags
-    fstream tags("tags.bin", ios::in|ios::out|ios::binary);
-    tags.seekp(0);
-    tags.write(reinterpret_cast<char*>(&tam),sizeof(tam));
-    tags.close();
-    // */
+    arquivo.open("trie.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir trie.bin\n";
+    arquivo.seekp(0);
+    arquivo.write(reinterpret_cast<char*>(&node),sizeof(node));
+    arquivo.close();
+    // exctag.bin
+    tam = 0;
+    arquivo.open("exctag.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir exctag.bin\n";
+    arquivo.seekp(0);
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.close();
+    // idxs.bin
+    arquivo.open("idxs.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir idxs.bin\n";
+    arquivo.seekp(0);
+    tam = -1;
+    for(int i = 0; i < 192;++i){
+        arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    }
+    arquivo.close();
 }

@@ -91,7 +91,6 @@ listaRegistroExcluido::~listaRegistroExcluido(){
         arquivo.close();
     }
 }
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //ok
 bancoRegistro::bancoRegistro(listaRegistroExcluido& lista, std::string s) : lista_ref(lista){
@@ -140,35 +139,51 @@ bancoRegistro::~bancoRegistro(){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //ok
-trie::trie( std::string s){
+trie::trie( listaRegistroExcluido &lista, std::string s) : ls(lista){
     arquivo.open(s,std::ios::in | std::ios::out | std::ios::binary);
     if(!arquivo) std::cerr << "Erro ao abrir "+s+".bin\n";
 }
 //ok
 int trie::get_tamanho(){
-    int result = -1;
-    arquivo.seekg(0);
-    arquivo.read(reinterpret_cast<char*>(&result),sizeof(result));
-    return result;
+    return ls.get_ultimo_id();
 }
 //ok
 void trie::set_tamanho(int tam){
-    arquivo.seekp(0);
-    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
-    return;
+    ls.set_ultimo_id(tam);
 }
-//ok
+
 nodeTrie trie::get_node(int offset){
     nodeTrie result;
     arquivo.seekg(offset);
     arquivo.read(reinterpret_cast<char*>(&result),sizeof(result));
     return result;
 }
-//ok
+
 void trie::set_node( nodeTrie node,int offset){
     arquivo.seekp(offset);
     arquivo.write(reinterpret_cast<char*>(&node),sizeof(node));
     return;
+}
+
+void trie::set_valor(const char s[TAMANHO_STRING],int valor){
+    int i = 0, offset = 0;
+    nodeTrie node = get_node(offset);
+    while(s[i] != '\0'){
+        if(s[i] == ' '){
+            i++;
+            continue;
+        }
+
+        int idx = (s[i] |' ') - 'a';
+        if(node.offsets[idx] == -1) return;
+        
+        offset = node.offsets[idx];
+        node = get_node(offset);
+        i++;
+    }
+
+    node.valor = valor;
+    set_node(node,offset);
 }
 
 std::vector<int> trie::buscar_trieR(int offset){
@@ -189,7 +204,7 @@ std::vector<int> trie::buscar_trieR(int offset){
 }
 
 int trie::busca_trie_exata(const char s[TAMANHO_STRING]){
-    int i = 0, offset = sizeof(int);
+    int i = 0, offset = 0;
     nodeTrie node = get_node(offset);
     while(s[i] != '\0'){
         if(s[i] == ' '){
@@ -213,7 +228,7 @@ int trie::busca_trie_exata(const char s[TAMANHO_STRING]){
 }
 
 std::vector<int> trie::buscar_trie(const char s[TAMANHO_STRING]){
-    int i = 0, offset = sizeof(int);
+    int i = 0, offset = 0;
     std::vector<int> result;
     nodeTrie node = get_node(offset);
     while(s[i] != '\0'){
@@ -235,7 +250,7 @@ std::vector<int> trie::buscar_trie(const char s[TAMANHO_STRING]){
 }
 
 void trie::inserir_trie(const char s[TAMANHO_STRING], int id){
-    int offset = sizeof(int), i = 0, tam;
+    int offset = 0, i = 0, tam;
     nodeTrie node = get_node(offset);
     while(true){
         if(s[i] == ' '){
@@ -252,18 +267,19 @@ void trie::inserir_trie(const char s[TAMANHO_STRING], int id){
         int idx = (s[i] |' ') - 'a';
         if(node.offsets[idx] == -1){
             nodeTrie novonode;
-            int novooffset;
+            bool reusado = (ls.get_tam_lista_excl() > 0);
+            int novooffset = ls.get_id();
             novonode.ehfolha = false;
             novonode.valor = -1;
             for(int j = 0; j < 26;++j){
                 novonode.offsets[j] = -1;
             }
-            tam = get_tamanho();
-            novooffset = sizeof(int) + (tam*sizeof(novonode));
+            if(!reusado){
+                novooffset *= sizeof(novonode);
+            }
             node.offsets[idx] = novooffset;
             set_node(novonode,novooffset);
             set_node(node,offset);
-            set_tamanho(tam+1);
             node = novonode;
             offset = novooffset;
         }else{
@@ -276,28 +292,53 @@ void trie::inserir_trie(const char s[TAMANHO_STRING], int id){
     return;
 }
 
+bool trie::excluir_ramo(const char s[TAMANHO_STRING], int offset, int i ){
+    nodeTrie node = get_node(offset);
+    if(s[i] == '\0'){
+        node.ehfolha = false;
+        node.valor = -1;
+        set_node(node,offset);
+        for(int i = 0; i < QTD_CARACTER; ++i){
+            if(node.offsets[i] != -1) return false;
+        }
+        return true;
+    } 
+
+    if(s[i] == ' '){
+        return excluir_ramo(s,offset,i+1);
+    }
+
+    int idx = (s[i] | ' ') - 'a';
+    if(node.offsets[idx] == -1) return false;
+    if(excluir_ramo(s,node.offsets[idx],i+1)){
+        ls.adicionar_excluido(node.offsets[idx]);
+        node.offsets[idx] = -1;
+        for(int i = 0; i < QTD_CARACTER; ++i){
+            if(node.offsets[i] != -1) return false;
+        }
+        return true;
+    }else{
+        return false;
+    }
+}
+
 trie::~trie(){
     if (arquivo.is_open()) {
         arquivo.close();
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-listas::listas(std:: string s){
+listas::listas( listaRegistroExcluido &lista, std:: string s) : ls(lista){
     arquivo.open(s,std::ios::in | std::ios::out | std::ios::binary);
     if(!arquivo) std::cerr << "Erro ao abrir "+s+".bin\n";
 }
 
 int listas::get_tamanho_lista(){
-    int tam = -1;
-    arquivo.seekg(0);
-    arquivo.read(reinterpret_cast<char*>(&tam),sizeof(tam));
-    return tam;
+    return ls.get_ultimo_id();
 }
 
 void listas::set_tamanho_lista(int tam){
-    arquivo.seekp(0);
-    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
-    return;
+    ls.set_ultimo_id(tam);
 }
 
 nodeLista listas::get_node_lista(int offset){
@@ -314,6 +355,37 @@ void listas::set_node_lista(nodeLista node, int offset){
     return;
 }
 
+// -1 precisa apagar o ramo da trie
+// -2 não precisa fazer nada
+// numero positivo precisa trocar o offset na trie
+int listas::excluir_node_lista(int offset, int id){
+    nodeLista node = get_node_lista(offset);
+    if( node.valor == id ){
+        ls.adicionar_excluido(offset);
+        if(node.nxt == -1){
+            return -1;
+        }else{
+            return node.nxt;
+        }
+    }
+    int ptr = node.nxt, pat = offset;
+    while(ptr != -1){
+        node = get_node_lista(ptr);
+        if(node.valor == id){
+            ls.adicionar_excluido(ptr);
+            nodeLista aux = get_node_lista(pat);
+            aux.nxt = node.nxt;
+            set_node_lista(aux,pat);
+            return -2;
+        }else{
+            pat = ptr;
+            ptr = node.nxt;
+        }
+    }
+
+    return -2;
+}
+
 std::vector<int> listas::get_lista(int offset){
     std::vector<int> result;
     int ptr = offset;
@@ -328,13 +400,18 @@ std::vector<int> listas::get_lista(int offset){
 }
 
 int listas::inserir_lista(int id){
-    int tam = get_tamanho_lista();
+    bool reuso = (ls.get_tam_lista_excl() > 0);
+    int tam = ls.get_id();
     nodeLista node;
     node.nxt = -1;
     node.valor = id;
-    int offset = sizeof(int)+tam*sizeof(node);
+    int offset;
+    if(reuso){
+        offset = tam;
+    }else{
+        offset = tam*sizeof(node);
+    }
     set_node_lista(node,offset);
-    set_tamanho_lista(tam+1);
 
     return offset;
 }
@@ -351,15 +428,19 @@ void listas::inserir_elemento_lista(int offset, int id){
         }
     }
     nodeLista novo;
-    int tam = get_tamanho_lista();
-    int novooffset = sizeof(int) + tam*sizeof(novo);
+    bool reuso = (ls.get_tam_lista_excl() > 0);
+    int tam = ls.get_id();
+    int novooffset;
+    if(reuso){
+        novooffset = tam;
+    }else{
+        novooffset = tam*sizeof(node);
+    }
     novo.valor = id;
     novo.nxt = -1;
     node.nxt = novooffset;
-
     set_node_lista(novo,novooffset);
     set_node_lista(node,ptr);
-    set_tamanho_lista(tam+1);
     return;
 }
 
@@ -393,7 +474,7 @@ indices::~indices(){
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-admin::admin(listaRegistroExcluido &q,std::string r, std::string s, std::string t, std::string u, std::string v):bd(q,r), tr(s),lt(t),tags(u),idxs(v){
+admin::admin(listaRegistroExcluido &l, std::string r, listaRegistroExcluido &m, std::string s, listaRegistroExcluido &n, std::string t,listaRegistroExcluido &o, std::string u, std::string v):bd(l,r), tr(m,s),lt(n,t),tags(o,u),idxs(v){
 
 }
 
@@ -540,7 +621,7 @@ void admin::adicionar(registro &r){
     }else{
         lt.inserir_elemento_lista(ok,id);
     }
-    /*
+    // /*
     int count = 0; 
     long long copia = r.generos;
     while(copia != 0){
@@ -550,7 +631,7 @@ void admin::adicionar(registro &r){
                 int offset = tags.inserir_lista(id);
                 idxs.set_idx(count*sizeof(int),offset);
             }else{
-                tags.inserir_elemento_lista(id,idx);
+                tags.inserir_elemento_lista(idx,id);
             }
         }
         copia = copia >> 1;
@@ -565,7 +646,7 @@ void admin::adicionar(registro &r){
                 int offset = tags.inserir_lista(id);
                 idxs.set_idx(count*sizeof(int),offset);
             }else{
-                tags.inserir_elemento_lista(id,idx);
+                tags.inserir_elemento_lista(idx,id);
             }
         }
         copia = copia >> 1;
@@ -579,11 +660,38 @@ void admin::adicionar(registro &r){
                 int offset = tags.inserir_lista(id);
                 idxs.set_idx(count*sizeof(int),offset);
             }else{
-                tags.inserir_elemento_lista(id,idx);
+                tags.inserir_elemento_lista(idx,id);
             }
         }
         copia = copia >> 1;
         count++;
     }
-    */
+    // */
+}
+
+void admin::excluir(int id){
+    registro r = bd.get_registro(id);
+    bd.excluir_registro(id);
+    int offset = tr.busca_trie_exata(r.nome);
+    int x = lt.excluir_node_lista(offset,id);
+    if( x > 0){
+        tr.set_valor(r.nome,x);
+    }else if(x == -1){
+        tr.excluir_ramo(r.nome,0,0);
+    }
+    offset = tr.busca_trie_exata(r.artista);
+    x = lt.excluir_node_lista(offset,id);
+    if( x > 0){
+        tr.set_valor(r.artista,x);
+    }else if(x == -1){
+        tr.excluir_ramo(r.artista,0,0);
+    }
+    offset = tr.busca_trie_exata(r.artista);
+    x = lt.excluir_node_lista(offset,id);
+    if( x > 0){
+        tr.set_valor(r.artista,x);
+    }else if(x == -1){
+        tr.excluir_ramo(r.artista,0,0);
+    }
+    //falta remover as tags
 }
