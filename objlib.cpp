@@ -357,7 +357,7 @@ void listas::set_node_lista(nodeLista node, int offset){
 
 // -1 precisa apagar o ramo da trie
 // -2 não precisa fazer nada
-// numero positivo precisa trocar o offset na trie
+// numero positivo precisa trocar o offset na estrutura de dados
 int listas::excluir_node_lista(int offset, int id){
     nodeLista node = get_node_lista(offset);
     if( node.valor == id ){
@@ -671,6 +671,7 @@ void admin::adicionar(registro &r){
 
 void admin::excluir(int id){
     registro r = bd.get_registro(id);
+    if(!r.ativo) return;
     bd.excluir_registro(id);
     int offset = tr.busca_trie_exata(r.nome);
     int x = lt.excluir_node_lista(offset,id);
@@ -694,4 +695,48 @@ void admin::excluir(int id){
         tr.excluir_ramo(r.artista,0,0);
     }
     //falta remover as tags
+    int count = 0; 
+    long long copia = r.generos;
+    while(copia != 0){
+        if(copia & 1){
+            int idx = idxs.get_idx(count*sizeof(int));
+            if(idx == -1) {
+                std::cerr << "Esse genero não foi registrada\n";
+            }else{
+                int y = tags.excluir_node_lista(idx,id);
+                if(y == -1 || y > 0) idxs.set_idx(count*sizeof(int),y);
+            }
+        }
+        copia = copia >> 1;
+        count++;
+    }
+    count = 64;
+    copia = r.instrumentos;
+    while(copia != 0){
+        if(copia & 1){
+            int idx = idxs.get_idx(count*sizeof(int));
+            if(idx == -1) {
+                std::cerr << "Esse instrumento não foi registrada\n";
+            }else{
+                int y = tags.excluir_node_lista(idx,id);
+                if(y == -1 || y > 0) idxs.set_idx(count*sizeof(int),y);
+            }
+        }
+        copia = copia >> 1;
+        count++;
+    }
+    count = 128, copia = r.tags;
+    while(copia != 0){
+        if(copia & 1){
+            int idx = idxs.get_idx(count*sizeof(int));
+            if(idx == -1) {
+                std::cerr << "Essa tag não foi registrada\n";
+            }else{
+                int y = tags.excluir_node_lista(idx,id);
+                if(y == -1 || y > 0) idxs.set_idx(count*sizeof(int),y);
+            }
+        }
+        copia = copia >> 1;
+        count++;
+    }
 }
