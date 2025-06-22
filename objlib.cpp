@@ -7,7 +7,17 @@
 //ok
 listaRegistroExcluido::listaRegistroExcluido(std::string s){
     arquivo.open(s, std::ios::in | std::ios::out | std::ios::binary);
-    if(!arquivo) std::cerr << "Erro ao abrir "+s+".bin\n";
+    
+    if (!arquivo.is_open()) {
+        std::ofstream temp(s, std::ios::binary);
+        temp.close();
+        
+        arquivo.open(s, std::ios::in | std::ios::out | std::ios::binary);
+        
+        if (!arquivo.is_open()) {
+            std::cerr << "Erro ao criar/abrir " << s << "\n";
+        }
+    }
 }
 //ok
 int listaRegistroExcluido::get_ultimo_id(){
@@ -94,8 +104,18 @@ listaRegistroExcluido::~listaRegistroExcluido(){
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //ok
 bancoRegistro::bancoRegistro(listaRegistroExcluido& lista, std::string s) : lista_ref(lista){
-    arquivo.open(s,std::ios::in | std::ios::out | std::ios::binary);
-    if(!arquivo) std::cerr << "Erro ao abrir "+s+".bin\n";
+    arquivo.open(s, std::ios::in | std::ios::out | std::ios::binary);
+    
+    if (!arquivo.is_open()) {
+        std::ofstream temp(s, std::ios::binary);
+        temp.close();
+        
+        arquivo.open(s, std::ios::in | std::ios::out | std::ios::binary);
+        
+        if (!arquivo.is_open()) {
+            std::cerr << "Erro ao criar/abrir " << s << "\n";
+        }
+    }
 }
 //ok
 registro bancoRegistro::get_registro(int id){
@@ -140,8 +160,18 @@ bancoRegistro::~bancoRegistro(){
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //ok
 trie::trie( listaRegistroExcluido &lista, std::string s) : ls(lista){
-    arquivo.open(s,std::ios::in | std::ios::out | std::ios::binary);
-    if(!arquivo) std::cerr << "Erro ao abrir "+s+".bin\n";
+    arquivo.open(s, std::ios::in | std::ios::out | std::ios::binary);
+    
+    if (!arquivo.is_open()) {
+        std::ofstream temp(s, std::ios::binary);
+        temp.close();
+        
+        arquivo.open(s, std::ios::in | std::ios::out | std::ios::binary);
+        
+        if (!arquivo.is_open()) {
+            std::cerr << "Erro ao criar/abrir " << s << "\n";
+        }
+    }
 }
 //ok
 int trie::get_tamanho(){
@@ -329,8 +359,18 @@ trie::~trie(){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 listas::listas( listaRegistroExcluido &lista, std:: string s) : ls(lista){
-    arquivo.open(s,std::ios::in | std::ios::out | std::ios::binary);
-    if(!arquivo) std::cerr << "Erro ao abrir "+s+".bin\n";
+    arquivo.open(s, std::ios::in | std::ios::out | std::ios::binary);
+    
+    if (!arquivo.is_open()) {
+        std::ofstream temp(s, std::ios::binary);
+        temp.close();
+        
+        arquivo.open(s, std::ios::in | std::ios::out | std::ios::binary);
+        
+        if (!arquivo.is_open()) {
+            std::cerr << "Erro ao criar/abrir " << s << "\n";
+        }
+    }
 }
 
 int listas::get_tamanho_lista(){
@@ -451,9 +491,19 @@ listas::~listas(){
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-indices::indices(std::string s){
-    arquivo.open(s,std::ios::in | std::ios::out | std::ios::binary);
-    if(!arquivo) std::cerr << "Erro ao abrir "+s+".bin\n";
+indices::indices(std::string s) {    
+    arquivo.open(s, std::ios::in | std::ios::out | std::ios::binary);
+    
+    if (!arquivo.is_open()) {
+        std::ofstream temp(s, std::ios::binary);
+        temp.close();
+        
+        arquivo.open(s, std::ios::in | std::ios::out | std::ios::binary);
+        
+        if (!arquivo.is_open()) {
+            std::cerr << "Erro ao criar/abrir " << s << "\n";
+        }
+    }
 }
 
 int indices::get_idx(int offset){
@@ -744,3 +794,7 @@ void admin::excluir(int id){
         count++;
     }
 }
+
+// erros na exclusão
+// a trie não está sendo excluida apenas trocada para ehfolha = false
+//

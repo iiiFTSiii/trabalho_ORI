@@ -2,6 +2,7 @@
 #include <unordered_set>
 #include <vector>
 #include <fstream>
+#include <cstdio> 
 #include "objlib.hpp"
 
 using namespace std;
@@ -110,10 +111,82 @@ void rotinaExcluir(){
     teste.excluir(n);
 }
 
+void rotinaExcluirTudo(){
+    vector<string> arquivos = {
+        "excreg.bin", "exctr.bin", "exctag.bin", 
+        "excinter.bin", "registros.bin", "trie.bin", 
+        "inter.bin", "tags.bin", "idxs.bin"
+    };
+
+    for (const auto& arquivo : arquivos) {
+        if (remove(arquivo.c_str()) != 0) {
+            perror(("Erro ao excluir " + arquivo).c_str());
+        } else {
+            cout << arquivo << " excluído com sucesso!" << endl;
+        }
+    }
+}
+
+void rotinaInicializar(){
+    int tam = 0;
+    // excreg.bin
+    fstream arquivo("excreg.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir excreg.bin\n";
+    arquivo.seekp(0);
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.close();
+    // excinter.bin
+    arquivo.open("excinter.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir excinter.bin\n";
+    arquivo.seekp(0);
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.close();
+    //  exctr.bin
+    tam = 1;
+    arquivo.open("exctr.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir exctr.bin\n";
+    arquivo.seekp(0);
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    tam = 0;
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.close();
+    // trie.bin
+    nodeTrie node;
+    node.ehfolha = false;
+    node.valor = -1;
+    for(int i = 0; i < QTD_CARACTER; ++i){
+        node.offsets[i] = -1;
+    }
+    arquivo.open("trie.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir trie.bin\n";
+    arquivo.seekp(0);
+    arquivo.write(reinterpret_cast<char*>(&node),sizeof(node));
+    arquivo.close();
+    // exctag.bin
+    tam = 0;
+    arquivo.open("exctag.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir exctag.bin\n";
+    arquivo.seekp(0);
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    arquivo.close();
+    // idxs.bin
+    arquivo.open("idxs.bin",std::ios::in | std::ios::out | std::ios::binary);
+    if(!arquivo) cerr << "Erro ao abrir idxs.bin\n";
+    arquivo.seekp(0);
+    tam = -1;
+    for(int i = 0; i < 192;++i){
+        arquivo.write(reinterpret_cast<char*>(&tam),sizeof(tam));
+    }
+    arquivo.close();
+}
+
 int main(){
     int resp = 0;
-    while(resp != 4){
-        cout << "O que deseja fazer?\n1. Buscar Musica\n2. Inserir Musica\n3. Excluir musica\n4. Sair\n\n";
+    while(resp != 6){
+        cout << "O que deseja fazer?\n1. Buscar Musica\n2. Inserir Musica\n3. Excluir musica\n4. Excluir tudo\n5. Iniciar Arquivos\n6. Sair\n\n";
         cin >> resp;
         cin.ignore();
         if(resp == 1){
@@ -122,7 +195,12 @@ int main(){
             rotinaInserir();
         }else if(resp == 3){
             rotinaExcluir();
-        }else if(resp != 4){
+        }else if(resp == 4){
+            rotinaExcluirTudo();
+            return 0;
+        }else if(resp == 5){
+            rotinaInicializar();
+        }else if (resp != 6){
             cout << "Resposta invalida tente denovo\n\n";
         }
     }
@@ -183,5 +261,27 @@ int main(){
         cin >> resp;
         tmp = node.offsets[resp-'a'];
     }
+    */
+    /*
+    string s;
+    cout << "Arquivo: ";
+    cin >> s;
+    fstream arquivo(s, ios::in|ios::out|ios::binary);
+    if(!arquivo) {
+        cout << "Erro ao abrir arquivo " << s << endl;
+        return 0;
+    }
+    int tam;
+    arquivo.read(reinterpret_cast<char*>(&tam),(sizeof(tam)));
+    cout << "Tamnho da estrutura de dados " << tam << endl;
+    arquivo.read(reinterpret_cast<char*>(&tam),(sizeof(tam)));
+    cout << "Tamnho da lista de excluidos " << tam << endl;
+    int id;
+    cout << "ID: ";
+    for(int i = 0; i < tam; ++i){
+        arquivo.read(reinterpret_cast<char*>(&id),(sizeof(id)));
+        cout << id << " ";
+    }
+    cout << endl;
     */
 }
