@@ -359,6 +359,7 @@ void listas::set_node_lista(nodeLista node, int offset){
 // -2 não precisa fazer nada
 // numero positivo precisa trocar o offset na estrutura de dados
 int listas::excluir_node_lista(int offset, int id){
+    if(offset == -1) return -2;
     nodeLista node = get_node_lista(offset);
     if( node.valor == id ){
         ls.adicionar_excluido(offset);
@@ -674,6 +675,7 @@ void admin::excluir(int id){
     if(!r.ativo) return;
     bd.excluir_registro(id);
     int offset = tr.busca_trie_exata(r.nome);
+    if(offset == -1) return;
     int x = lt.excluir_node_lista(offset,id);
     if( x > 0){
         tr.set_valor(r.nome,x);
@@ -681,18 +683,20 @@ void admin::excluir(int id){
         tr.excluir_ramo(r.nome,0,0);
     }
     offset = tr.busca_trie_exata(r.artista);
+    if(offset == -1) return;
     x = lt.excluir_node_lista(offset,id);
     if( x > 0){
         tr.set_valor(r.artista,x);
     }else if(x == -1){
         tr.excluir_ramo(r.artista,0,0);
     }
-    offset = tr.busca_trie_exata(r.artista);
+    offset = tr.busca_trie_exata(r.album);
+    if(offset == -1) return;
     x = lt.excluir_node_lista(offset,id);
     if( x > 0){
-        tr.set_valor(r.artista,x);
+        tr.set_valor(r.album,x);
     }else if(x == -1){
-        tr.excluir_ramo(r.artista,0,0);
+        tr.excluir_ramo(r.album,0,0);
     }
     //falta remover as tags
     int count = 0; 
@@ -704,7 +708,7 @@ void admin::excluir(int id){
                 std::cerr << "Esse genero não foi registrada\n";
             }else{
                 int y = tags.excluir_node_lista(idx,id);
-                if(y == -1 || y > 0) idxs.set_idx(count*sizeof(int),y);
+                if(y != -2) idxs.set_idx(count*sizeof(int),y);
             }
         }
         copia = copia >> 1;
@@ -719,7 +723,7 @@ void admin::excluir(int id){
                 std::cerr << "Esse instrumento não foi registrada\n";
             }else{
                 int y = tags.excluir_node_lista(idx,id);
-                if(y == -1 || y > 0) idxs.set_idx(count*sizeof(int),y);
+                if(y != -2) idxs.set_idx(count*sizeof(int),y);
             }
         }
         copia = copia >> 1;
@@ -733,7 +737,7 @@ void admin::excluir(int id){
                 std::cerr << "Essa tag não foi registrada\n";
             }else{
                 int y = tags.excluir_node_lista(idx,id);
-                if(y == -1 || y > 0) idxs.set_idx(count*sizeof(int),y);
+                if(y != -2) idxs.set_idx(count*sizeof(int),y);
             }
         }
         copia = copia >> 1;
