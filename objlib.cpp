@@ -77,12 +77,10 @@ int listaRegistroExcluido::get_id(){
 }
 //ok
 void listaRegistroExcluido::adicionar_excluido(int id){
-    if(conferir_id(id)){
-        int tam = get_tam_lista_excl();
-        arquivo.seekp((2+tam)*sizeof(int));
-        arquivo.write(reinterpret_cast<char*>(&id),sizeof(id));
-        set_tam_lista_excl(tam+1);
-    }
+    int tam = get_tam_lista_excl();
+    arquivo.seekp((2+tam)*sizeof(int));
+    arquivo.write(reinterpret_cast<char*>(&id),sizeof(id));
+    set_tam_lista_excl(tam+1);
 }
 //ok
 void listaRegistroExcluido::ler_lista_excluidos(){
@@ -90,7 +88,7 @@ void listaRegistroExcluido::ler_lista_excluidos(){
     for(int i = 0; i < tam; ++i){
         arquivo.seekg((2+i)*sizeof(int));
         arquivo.read(reinterpret_cast<char*>(&id),sizeof(int));
-        std::cout << id << std::endl;
+        std::cout << id << "\n";
     }
     
     return;
@@ -340,9 +338,11 @@ bool trie::excluir_ramo(const char s[TAMANHO_STRING], int offset, int i ){
 
     int idx = (s[i] | ' ') - 'a';
     if(node.offsets[idx] == -1) return false;
+    
     if(excluir_ramo(s,node.offsets[idx],i+1)){
         ls.adicionar_excluido(node.offsets[idx]);
         node.offsets[idx] = -1;
+        set_node(node,offset);
         for(int i = 0; i < QTD_CARACTER; ++i){
             if(node.offsets[i] != -1) return false;
         }
@@ -403,11 +403,7 @@ int listas::excluir_node_lista(int offset, int id){
     nodeLista node = get_node_lista(offset);
     if( node.valor == id ){
         ls.adicionar_excluido(offset);
-        if(node.nxt == -1){
-            return -1;
-        }else{
-            return node.nxt;
-        }
+        return node.nxt;
     }
     int ptr = node.nxt, pat = offset;
     while(ptr != -1){
@@ -727,6 +723,7 @@ void admin::excluir(int id){
     int offset = tr.busca_trie_exata(r.nome);
     if(offset == -1) return;
     int x = lt.excluir_node_lista(offset,id);
+    std::cout << "x: "<< x << "\n";
     if( x > 0){
         tr.set_valor(r.nome,x);
     }else if(x == -1){
@@ -735,6 +732,7 @@ void admin::excluir(int id){
     offset = tr.busca_trie_exata(r.artista);
     if(offset == -1) return;
     x = lt.excluir_node_lista(offset,id);
+    std::cout << "x: "<< x << "\n";
     if( x > 0){
         tr.set_valor(r.artista,x);
     }else if(x == -1){

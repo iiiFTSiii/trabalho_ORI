@@ -68,13 +68,14 @@ void rotinaBuscar(){
     }
     for(int i = 0; i < result.size(); ++i){
         r = teste.bd.get_registro(result[i]);
-        cout << "Musica: " << r.nome << "\nArtista: " << r.artista << "\nAlbum: " << r.album << endl; 
+        cout << "Musica: " << r.nome << "\nArtista: " << r.artista << "\nAlbum: " << r.album << "\n"; 
     }
     
 }
 
 void rotinaInserir(){
     registro r;
+    r.ativo = true;
     int n;
     string s;
     cout << "Digite o nome da musica: ";
@@ -122,7 +123,7 @@ void rotinaExcluirTudo(){
         if (remove(arquivo.c_str()) != 0) {
             perror(("Erro ao excluir " + arquivo).c_str());
         } else {
-            cout << arquivo << " excluído com sucesso!" << endl;
+            cout << arquivo << " excluído com sucesso!\n";
         }
     }
 }
@@ -205,6 +206,7 @@ int main(){
         }
     }
     /*
+    // Escrever
     string artistas[6] = {"Charlie Brown Jr", "Michael Jackson", "Twenty One Pilots", "Yun Li","Eminem","Charlie Brown Jr"};
     string musicas[6] = {"Senhor do Tempo", "Beat It", "Stressed Out","Twist","Till I Collapse","Champanhe E Agua Benta"};
     string albuns[6] = {"Imunidade Musical", "Thriller", "Bluryface","Bons Tempos","The Eminem Show","Tamo Ai Na Atividade"};
@@ -247,14 +249,14 @@ int main(){
     while(resp != ' '){
         arquivo.seekg(tmp);
         arquivo.read(reinterpret_cast<char*>(&node),sizeof(node));
-        cout << node.ehfolha << endl;
-        cout << node.valor << endl;
+        cout << node.ehfolha << "\n";
+        cout << node.valor << "\n";
         for(int i = 0; i < 26; ++i){
             cout << char(i + 'a') << ": ";
             if(node.offsets[i] == -1){
                 cout << "vazio\n";
             }else{
-                cout << (node.offsets[i] - sizeof(int))/sizeof(nodeTrie) << endl;
+                cout << (node.offsets[i] - sizeof(int))/sizeof(nodeTrie) << "\n";
             }
         }
         cout << "qual caracter: ";
@@ -263,25 +265,26 @@ int main(){
     }
     */
     /*
+    // Analisar arquivos
     string s;
     cout << "Arquivo: ";
     cin >> s;
     fstream arquivo(s, ios::in|ios::out|ios::binary);
     if(!arquivo) {
-        cout << "Erro ao abrir arquivo " << s << endl;
+        cout << "Erro ao abrir arquivo " << s << "\n";
         return 0;
     }
     int tam;
     arquivo.read(reinterpret_cast<char*>(&tam),(sizeof(tam)));
-    cout << "Tamnho da estrutura de dados " << tam << endl;
+    cout << "Tamnho da estrutura de dados " << tam << "\n";
     arquivo.read(reinterpret_cast<char*>(&tam),(sizeof(tam)));
-    cout << "Tamnho da lista de excluidos " << tam << endl;
+    cout << "Tamnho da lista de excluidos " << tam << "\n";
     int id;
     cout << "ID: ";
     for(int i = 0; i < tam; ++i){
         arquivo.read(reinterpret_cast<char*>(&id),(sizeof(id)));
         cout << id << " ";
     }
-    cout << endl;
+    cout << "\n";
     */
 }
