@@ -184,7 +184,83 @@ void rotinaInicializar(){
     arquivo.close();
 }
 
-int main(){
+int main(int argc, char *argv[]){
+    if (argc < 3) {
+        cerr << "Uso: " << argv[0] << " <operacao> [parametros...]\n";
+        return 1;
+    }
+
+    string operacao = argv[1];
+
+    if (operacao == "buscar") {
+        if (argc != 6) {
+            cerr << "Uso: buscar <string> <generos> <instrumentos> <tags>\n";
+            return 1;
+        }
+
+        registro r;
+        r.nome[0] = '\0';
+        r.artista[0] = '\0';
+        r.album[0] = '\0';
+        r.generos = atoi(argv[3]);
+        r.instrumentos = atoi(argv[4]);
+        r.tags = atoi(argv[5]);
+
+        string s = argv[2];
+        for(int i=0;i<s.size() && i<TAMANHO_STRING;++i) r.nome[i]=s[i];
+        for(int i=s.size();i<TAMANHO_STRING;++i) r.nome[i]='\0';
+
+        auto result = teste.busca(r);
+        if(result.empty()){
+            cout << "Nenhum Resultado!\n";
+            return 0;
+        }
+
+        for(int i=0;i<result.size();++i){
+            r = teste.bd.get_registro(result[i]);
+            cout << "Musica: " << r.nome << "\nArtista: " << r.artista << "\nAlbum: " << r.album << "\n";
+        }
+
+    } else if (operacao == "inserir") {
+        if (argc != 8) {
+            cerr << "Uso: inserir <nome> <artista> <album> <generos> <instrumentos> <tags>\n";
+            return 1;
+        }
+
+        registro r;
+        r.ativo = true;
+        auto copia = [](const string& s, char* destino) {
+            for(int i=0;i<s.size() && i<TAMANHO_STRING;++i) destino[i]=s[i];
+            for(int i=s.size();i<TAMANHO_STRING;++i) destino[i]='\0';
+        };
+
+        copia(argv[2], r.nome);
+        copia(argv[3], r.artista);
+        copia(argv[4], r.album);
+
+        r.generos = atoi(argv[5]);
+        r.instrumentos = atoi(argv[6]);
+        r.tags = atoi(argv[7]);
+
+        teste.adicionar(r);
+        cout << "Registro inserido com sucesso.\n";
+
+    } else if (operacao == "excluir") {
+        if (argc != 3) {
+            cerr << "Uso: excluir <id>\n";
+            return 1;
+        }
+        int id = atoi(argv[2]);
+        teste.excluir(id);
+        cout << "Registro excluido com sucesso.\n";
+
+    }else {
+        cerr << "Operação desconhecida: " << operacao << "\n";
+        return 1;
+    }
+
+    return 0;
+    /*
     int resp = 0;
     while(resp != 6){
         cout << "O que deseja fazer?\n1. Buscar Musica\n2. Inserir Musica\n3. Excluir musica\n4. Excluir tudo\n5. Iniciar Arquivos\n6. Sair\n\n";
@@ -205,6 +281,7 @@ int main(){
             cout << "Resposta invalida tente denovo\n\n";
         }
     }
+    */
     /*
     // Escrever
     string artistas[6] = {"Charlie Brown Jr", "Michael Jackson", "Twenty One Pilots", "Yun Li","Eminem","Charlie Brown Jr"};

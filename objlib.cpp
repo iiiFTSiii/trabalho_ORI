@@ -746,7 +746,6 @@ void admin::excluir(int id){
     }else if(x == -1){
         tr.excluir_ramo(r.album,0,0);
     }
-    //falta remover as tags
     int count = 0; 
     long long copia = r.generos;
     while(copia != 0){
@@ -792,7 +791,3 @@ void admin::excluir(int id){
         count++;
     }
 }
-
-// erros na exclusão
-// a trie não está sendo excluida apenas trocada para ehfolha = false
-//
