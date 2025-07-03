@@ -218,7 +218,7 @@ int main(int argc, char *argv[]){
 
         for(int i=0;i<result.size();++i){
             r = teste.bd.get_registro(result[i]);
-            cout << "Musica: " << r.nome << "\nArtista: " << r.artista << "\nAlbum: " << r.album << "\n";
+            cout <<  r.nome << "\n" << r.artista << "\n" << r.album << "\n";
         }
 
     } else if (operacao == "inserir") {
