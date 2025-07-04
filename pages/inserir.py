@@ -42,7 +42,7 @@ with st.form("form_inserir_musica", clear_on_submit=True):
             "Chillout", "Drum and Bass", "Acid Jazz", "Latin Pop", "Mariachi",
             "Salsa", "Bachata", "Tango", "Flamenco", "Bossa Nova", "Neo-Soul",
             "Trip Hop", "Contemporary R&B", "Christian Rock", "Gothic Rock",
-            "Psychedelic Rock", "Nu Metal", "Emo Pop", "Ska Punk", "Blue-eyed Soul"
+            "Psychedelic Rock", "Nu Metal", "Emo Pop", "Ska Punk", "outro"
         ],
         "Instrumentos": [
             "Cordas", "Violão", "Violoncelo", "Violino", "Viola", "Viola caipira",
@@ -53,7 +53,7 @@ with st.form("form_inserir_musica", clear_on_submit=True):
             "Zabumba",
             "Saxofone", "Flauta", "Clarinete",
             "Trombone", "Trompete", "Trompa", "Corneta", "Tuba", "Sousafone",
-            "Órgão", "Teclado", "Piano", "Sintetizador", "Acordeão"
+            "Órgão", "Teclado", "Piano", "Sintetizador", "outro"
         ],
         "Variedades": [
             "Vocal Masculino", "Vocal Feminino", "Sem vocal", "Chorus",
@@ -66,7 +66,7 @@ with st.form("form_inserir_musica", clear_on_submit=True):
             "Orquestra",
             "Feliz", "Triste", "Épica", "Odiosa", "Romântica", "Comédia",
             "Crítica", "Ambiente",
-            "50s e antes", "60s", "70s", "80s", "90s", "2000s", "2010s", "2020s"
+            "50s e antes", "60s", "70s", "80s", "90s", "2000s", "2010s", "2020s","outro"
         ]
     }
     

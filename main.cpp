@@ -4,6 +4,9 @@
 #include <fstream>
 #include <cstdio> 
 #include "objlib.hpp"
+#include <cstdlib>
+#include <cerrno>
+#include <climits>
 
 using namespace std;
 
@@ -12,6 +15,24 @@ listaRegistroExcluido exctr("exctr.bin");
 listaRegistroExcluido exctag("exctag.bin");
 listaRegistroExcluido excinter("excinter.bin");
 admin teste(excreg,"registros.bin",exctr,"trie.bin",excinter,"inter.bin",exctag,"tags.bin","idxs.bin");
+
+
+
+long long to_long_long(const char* s) {
+    errno = 0;
+    char* end;
+    long long val = std::strtoll(s, &end, 10);
+
+    if (errno != 0) {
+        perror("Erro na conversão de string para long long");
+        exit(1);
+    }
+    if (end == s || *end != '\0') {
+        std::cerr << "Entrada inválida: " << s << "\n";
+        exit(1);
+    }
+    return val;
+}
 
 void rotinaBuscar(){
     registro r;
@@ -22,7 +43,7 @@ void rotinaBuscar(){
     r.instrumentos = 0;
     r.tags = 0;
     string s;
-    int n;
+    long long n;
     int resp = 0;
     bool input = false;
     while(resp != 5){
@@ -76,7 +97,7 @@ void rotinaBuscar(){
 void rotinaInserir(){
     registro r;
     r.ativo = true;
-    int n;
+    long long n;
     string s;
     cout << "Digite o nome da musica: ";
     getline(cin,s);
@@ -185,6 +206,7 @@ void rotinaInicializar(){
 }
 
 int main(int argc, char *argv[]){
+    // /*
     if (argc < 3) {
         cerr << "Uso: " << argv[0] << " <operacao> [parametros...]\n";
         return 1;
@@ -202,9 +224,9 @@ int main(int argc, char *argv[]){
         r.nome[0] = '\0';
         r.artista[0] = '\0';
         r.album[0] = '\0';
-        r.generos = atoi(argv[3]);
-        r.instrumentos = atoi(argv[4]);
-        r.tags = atoi(argv[5]);
+        r.generos = to_long_long(argv[3]);
+        r.instrumentos = to_long_long(argv[4]);
+        r.tags = to_long_long(argv[5]);
 
         string s = argv[2];
         for(int i=0;i<s.size() && i<TAMANHO_STRING;++i) r.nome[i]=s[i];
@@ -238,9 +260,9 @@ int main(int argc, char *argv[]){
         copia(argv[3], r.artista);
         copia(argv[4], r.album);
 
-        r.generos = atoi(argv[5]);
-        r.instrumentos = atoi(argv[6]);
-        r.tags = atoi(argv[7]);
+        r.generos = to_long_long(argv[5]);
+        r.instrumentos = to_long_long(argv[6]);
+        r.tags = to_long_long(argv[7]);
 
         teste.adicionar(r);
         cout << "Registro inserido com sucesso.\n";
@@ -260,6 +282,7 @@ int main(int argc, char *argv[]){
     }
 
     return 0;
+    // */
     /*
     int resp = 0;
     while(resp != 6){
